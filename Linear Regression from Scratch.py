@@ -3,12 +3,13 @@ import numpy
 import pandas as pd
 import numpy as np
 
-data = {
-    'x' : [4.0, 4.5, 5, 5.5, 6.0, 6.5, 7.0],
-    'y' : [33, 42, 45, 51, 53, 61, 62]
-}
+df = pd.DataFrame(
+    {   'x': [4.0, 4.5, 5, 5.5, 6.0, 6.5, 7.0],
+        'w': [1, -3, 2, 5, 0, 3, 6],
+        'z': [11, 15, 12, 9, 18, 13, 16],
+        'y': [33, 42, 45, 51, 53, 61, 62]
+    })
 
-df = pd.DataFrame(data)
 
 class CustomLinearRegression:
 
@@ -24,9 +25,17 @@ class CustomLinearRegression:
             self.intercept = model_coef[0]
             self.coefficient = model_coef[1:]
             return{ 'Intercept' : self.intercept, 'Coefficient' : self.coefficient }
-        pass
+        else:
+            model_coef = np.dot(np.dot(np.linalg.inv(np.dot(numpy.transpose(X), X)), numpy.transpose(X)), y)
+            self.intercept = 0
+            self.coefficient = model_coef
+            pass
 
-X = pd.DataFrame({'ones': [1 for _ in range(1, df.shape[0]+1)], 'x': df['x'] })
-model = CustomLinearRegression(fit_intercept=True)
+    def predict(self, X):
+        return np.dot(X, self.coefficient)
 
-print(model.fit(X, df['y']))
+
+reg = CustomLinearRegression(fit_intercept=False)
+reg.fit(df[['x', 'w', 'z']], df['y'])
+y_pred = reg.predict(df[['x', 'w', 'z']])
+print(y_pred)
