@@ -1,5 +1,3 @@
-# Write your code here
-
 class MatrixProcessor:
     def __init__(self):
         self.print_matrix = self.print_matrix
@@ -31,8 +29,8 @@ class MatrixProcessor:
         else:
             print('The operation cannot be performed.')
 
-    def multi_by_num(self, c):
-        multi_by_number = [list(map(lambda x: x * c, self.matrix_A[i])) for i in range(self.size_A[0])]
+    def multi_by_num(self, m, c):
+        multi_by_number = [list(map(lambda x: x * c, m[i])) for i in range(len(m))]
         self.print_matrix(multi_by_number)
 
     def multi_two_matrix(self):
@@ -53,21 +51,42 @@ class MatrixProcessor:
             self.print_matrix(self.matrix_A[::-1])
 
     def calc_det(self, m, s):
-        if s == (1,1):
+        if s == (1, 1):
             return m[0][0]
         if s == (2, 2):
             return m[0][0] * m[1][1] - m[0][1] * m[1][0]
 
         det = 0
         for index, x in enumerate(m[0]):
-            sub_matrix = [[*arr[0:index],*arr[index+1:]] for arr in m[1:]]
-            sub_matrix_shape = (s[0]-1, s[1]-1)
+            sub_matrix = [[*arr[0:index], *arr[index + 1:]] for arr in m[1:]]
+            sub_matrix_shape = (s[0] - 1, s[1] - 1)
             subdet = self.calc_det(sub_matrix, sub_matrix_shape)
             if index % 2 == 0:
                 det += x * subdet
             else:
                 det -= x * subdet
         return det
+
+    def calc_adj(self, m, s):
+        adj = [row[:] for row in m]
+        for index_row, row in enumerate(m):
+            for index_cell, x in enumerate(row):
+                sub_matrix = [[*arr[0:index_cell], *arr[index_cell + 1:]] for arr in [*m[0:index_row], *m[index_row+1:]]]
+                sub_matrix_shape = (s[0] - 1, s[1] - 1)
+                subdet = self.calc_det(sub_matrix, sub_matrix_shape)
+                cell = (-1) ** (index_row+1 + index_cell+1) * subdet
+                adj[index_row][index_cell] = cell
+        return [list(Y_col) for Y_col in zip(*adj)]
+
+
+    def inverse(self):
+        det = self.calc_det(self.matrix_A, self.size_A)
+        if det == 0:
+            print('This matrix doesn\'t have an inverse.')
+        else:
+            adj = self.calc_adj(self.matrix_A, self.size_A)
+            result = self.multi_by_num(adj, 1/det)
+            print(result)
 
     def print_matrix(self, m):
         print('The result is:')
@@ -85,6 +104,7 @@ while user_choice != 0:
 3. Multiply matrices
 4. Transpose matrix
 5. Calculate a determinant
+6. Inverse matrix
 0. Exit''')
     user_choice = int(input('Your choice:'))
     if user_choice == 1:
@@ -94,7 +114,7 @@ while user_choice != 0:
     elif user_choice == 2:
         processor.insert_A()
         constant = int(input('Enter constant:'))
-        processor.multi_by_num(constant)
+        processor.multi_by_num(processor.matrix_A, constant)
     elif user_choice == 3:
         processor.insert_A()
         processor.insert_B()
@@ -111,5 +131,8 @@ while user_choice != 0:
         processor.insert_A()
         det = processor.calc_det(processor.matrix_A, processor.size_A)
         print(f'The result is:\n{det}')
+    elif user_choice == 6:
+        processor.insert_A()
+        processor.inverse()
     elif user_choice == 0:
         exit()
