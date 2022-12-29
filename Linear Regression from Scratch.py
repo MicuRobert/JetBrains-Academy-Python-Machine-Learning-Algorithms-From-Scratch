@@ -1,17 +1,14 @@
 # write your code here
 import math
-
 import numpy
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 
-df = pd.DataFrame({
-        'Capacity': [0.9, 0.5, 1.75, 2.0, 1.4, 1.5, 3.0, 1.1, 2.6, 1.9],
-        'Age': [11, 11, 9, 8, 7, 7, 6, 5, 5, 4],
-        'Cost/ton': [21.95, 27.18, 16.9, 15.37, 16.03, 18.15, 14.22, 18.72, 15.4, 14.69],
-})
+df = pd.read_csv('data_stage4.csv', sep=',')
 
-
+# CUSTOM SOLUTION
 class CustomLinearRegression:
 
     def __init__(self, *, fit_intercept=True):
@@ -51,14 +48,31 @@ class CustomLinearRegression:
 
 
 reg = CustomLinearRegression(fit_intercept=True)
-reg.fit(df[['Capacity', 'Age']], df['Cost/ton'])
-y_pred = reg.predict(df[['Capacity', 'Age']])
-r2 = reg.r2_score(df['Cost/ton'], y_pred)
-rmse = reg.rmse(df['Cost/ton'], y_pred)
+reg.fit(df[['f1', 'f2', 'f3']], df['y'])
+y_pred = reg.predict(df[['f1', 'f2', 'f3']])
+r2 = reg.r2_score(df['y'], y_pred)
+rmse = reg.rmse(df['y'], y_pred)
 res = {
         'Intercept': reg.intercept,
         'Coefficient': reg.coefficient,
         'R2': r2,
         'RMSE': rmse
     }
-print(res)
+
+# SKLEARN SOLUTION
+regSci = LinearRegression(fit_intercept=True)
+regSci.fit(df[['f1', 'f2', 'f3']], df['y'])
+y_pred_sklearn = regSci.predict(df[['f1', 'f2', 'f3']])
+r2_sklearn = r2_score(df['y'], y_pred_sklearn)
+mse_sklearn = mean_squared_error(df['y'], y_pred_sklearn)
+rmse_sklearn = math.sqrt(mse_sklearn)
+
+# COMPARE MODELS
+final_results = {
+        'Intercept': regSci.intercept_ - reg.intercept,
+        'Coefficient': regSci.coef_ - reg.coefficient,
+        'R2': r2_sklearn - r2,
+        'RMSE': rmse_sklearn - rmse
+}
+
+print(final_results)
