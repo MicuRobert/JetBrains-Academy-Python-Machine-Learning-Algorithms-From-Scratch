@@ -23,6 +23,20 @@ class MatrixProcessor:
         else:
             print('The operation cannot be performed.')
 
+    def transpose_square_matrix(self, m, s, choice):
+        if choice == 1:
+            self.print_matrix(map(list, zip(*m)))
+            pass
+        elif choice == 2:
+            self.print_matrix(list(map(list, zip(*m[::-1])))[::-1])
+            pass
+        elif choice == 3:
+            self.print_matrix([x[::-1] for x in m])
+            pass
+        elif choice == 4:
+            self.print_matrix(m[::-1])
+            pass
+
     def print_matrix(self, m):
         print('The result is:')
         for row in m:
@@ -35,10 +49,12 @@ processor = MatrixProcessor()
 user_choice = 1
 while user_choice != 0:
     print('''
-    1. Add matrices
-    2. Multiply matrix by a constant
-    3. Multiply matrices
-    0. Exit''')
+1. Add matrices
+2. Multiply matrix by a constant
+3. Multiply matrices
+4. Transpose matrix
+0. Exit
+        ''')
     user_choice = int(input('Your choice:'))
     if user_choice == 1:
         size_A = tuple([int(x) for x in input('Enter size of first matrix').split(' ')])
@@ -62,5 +78,17 @@ while user_choice != 0:
         print('Enter second matrix:')
         matrix_B = [list(map(float, input().split(' '))) for row in range(size_B[0])]
         processor.multi_two_matrix(matrix_A, matrix_B, size_A, size_B)
+    elif user_choice == 4:
+        print('''
+            1. Main diagonal
+            2. Side diagonal
+            3. Vertical line
+            4. Horizontal line
+            ''')
+        user_choice_transpose = int(input('Your choice:'))
+        size_A = tuple([int(x) for x in input('Enter size of first matrix').split(' ')])
+        print('Enter first matrix:')
+        matrix_A = [list(map(float, input().split(' '))) for row in range(size_A[0])]
+        processor.transpose_square_matrix(matrix_A, size_A, user_choice_transpose)
     elif user_choice == 0:
         exit()
