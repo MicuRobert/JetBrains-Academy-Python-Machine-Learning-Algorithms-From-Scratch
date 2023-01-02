@@ -19,14 +19,7 @@ if 'data.csv' not in os.listdir('../Data'):
 # read data
 data = pd.read_csv('../Data/data.csv')
 
-# dict for power and results predictor
-pw_res = {
-    2 : [],
-    3 : [],
-    4 : []
-}
-
-for power in pw_res.keys():
+def predict_w_power(power):
     # X a dataframe with a predictor rating and y a series with a target salary
     X, y = data[['rating']] ** power, data['salary']
 
@@ -41,7 +34,7 @@ for power in pw_res.keys():
     y_pred = model.predict(X_test)
     mape = mean_absolute_percentage_error(y_test, y_pred)
 
-    pw_res[power] = [round(model.intercept_,5), round(model.coef_[0],5), round(mape,5)]
+    return round(mape,5)
 
 # print best results
-print(pw_res[min(pw_res, key = lambda k: pw_res[k][2])][2])
+print(min([predict_w_power(pwr) for pwr in range(2,5)]))
