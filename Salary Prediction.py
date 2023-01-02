@@ -19,22 +19,19 @@ if 'data.csv' not in os.listdir('../Data'):
 # read data
 data = pd.read_csv('../Data/data.csv')
 
-def predict_w_power(power):
-    # X a dataframe with a predictor rating and y a series with a target salary
-    X, y = data[['rating']] ** power, data['salary']
+# X a dataframe with a predictor rating and y a series with a target salary
+X, y = data.loc[:, ['rating', 'draft_round', 'age', 'experience', 'bmi']] , data['salary']
 
-    # split into training and test parts
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
+# split into training and test parts
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=100)
 
-    # fit linear regression model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+# fit linear regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
 
-    # predict model on test data and calc MAPE
-    y_pred = model.predict(X_test)
-    mape = mean_absolute_percentage_error(y_test, y_pred)
-
-    return round(mape,5)
+# predict model on test data and calc MAPE
+y_pred = model.predict(X_test)
+mape = mean_absolute_percentage_error(y_test, y_pred)
 
 # print best results
-print(min([predict_w_power(pwr) for pwr in range(2,5)]))
+print(*[coef for coef in model.coef_], sep=', ')
