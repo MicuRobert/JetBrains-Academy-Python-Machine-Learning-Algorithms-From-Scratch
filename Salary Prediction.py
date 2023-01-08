@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import requests
 import pandas as pd
@@ -40,6 +39,7 @@ model = LinearRegression()
 comb_to_drop = [np.unique(np.array(comb)) for comb in combinations_with_replacement(corr, 2)]
 
 mape_res = []
+combs = []
 model.fit(X_train, y_train)
 for drop_col in comb_to_drop:
     # fit model with the new subset
@@ -49,6 +49,25 @@ for drop_col in comb_to_drop:
     y_pred = model.predict(X_test.drop(drop_col, axis=1))
     mape = round(mean_absolute_percentage_error(y_test, y_pred), 5)
     mape_res.append(mape)
+    combs.append(drop_col)
 
-# print best results
-print(min(mape_res))
+# best comb to drop
+best_comb = combs[np.argmin(mape_res)]
+
+# fit model with the new subset
+model.fit(X_train.drop(best_comb, axis=1), y_train)
+
+# predict model on test data and calc MAPE
+y_pred = pd.DataFrame(model.predict(X_test.drop(best_comb, axis=1)))
+
+# mape without negative predictions
+res = []
+negative_to_zero = y_pred.clip(lower=0)
+mape = round(mean_absolute_percentage_error(y_test, negative_to_zero), 5)
+res.append(mape)
+negative_to_median = y_pred.clip(lower=np.median(y_train))
+mape = round(mean_absolute_percentage_error(y_test, negative_to_zero), 5)
+res.append(mape)
+
+# print lowest mape
+print(min(res))
