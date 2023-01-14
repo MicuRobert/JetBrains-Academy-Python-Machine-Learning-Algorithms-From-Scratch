@@ -45,3 +45,27 @@ def clean_data(path):
     data['draft_round'] = data['draft_round'].apply(lambda x: '0' if x == 'Undrafted' else x)
 
     return data
+
+
+def feature_data(df):
+    # Get the unique values in the version column of the DataFrame and parse as a datetime object;
+    df['version'] = df['version'].apply(lambda x: x[3:].replace('k', '0'))
+    df['version'] = pd.to_datetime(df['version'], format='%Y')
+
+    # Engineer the age feature by subtracting b_day column from version. Calculate the value as year;
+    df['age'] = pd.DatetimeIndex(df['version']).year - pd.DatetimeIndex(df['b_day']).year
+
+    # Engineer the experience feature by subtracting draft_year column from version. Calculate the value as year;
+    df['experience'] = pd.DatetimeIndex(df['version']).year - pd.DatetimeIndex(df['draft_year']).year
+
+    # Engineer the bmi (body mass index) feature from weight (w) and height (h) columns. The formula is bmi = w / h^2
+    df['bmi'] = df['weight'] / df['height'] ** 2
+
+    # Drop the version, b_day, draft_year, weight, and height columns;
+    df.drop(['version', 'b_day', 'draft_year', 'weight', 'height'], axis=1, inplace=True)
+
+    # Remove the high cardinality features;
+    for i in df.columns:
+        if df[i].nunique() > 50 and i not in ['age', 'experience', 'bmi', 'salary']:
+            df.drop(i, axis=1, inplace=True)
+    return df
