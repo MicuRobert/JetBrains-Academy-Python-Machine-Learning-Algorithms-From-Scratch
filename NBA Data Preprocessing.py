@@ -69,3 +69,23 @@ def feature_data(df):
         if df[i].nunique() > 50 and i not in ['age', 'experience', 'bmi', 'salary']:
             df.drop(i, axis=1, inplace=True)
     return df
+
+def multicol_data(df):
+    X = df.drop(columns='salary')
+    y = df.salary
+    m = X.corr(numeric_only=True)
+    pairs = []
+    for i in range(m.shape[0]):
+        for j in range(i + 1, m.shape[0]):
+            if abs(m.iloc[i][j]) > 0.5:
+                pairs.append((i, j))
+    for p in pairs:
+        col0 = m.columns[p[0]]
+        col1 = m.columns[p[1]]
+        r0 = y.corr(X[col0])
+        r1 = y.corr(X[col1])
+        if r0 < r1:
+            df = df.drop(columns=col0)
+        else:
+            df = df.drop(columns=col1)
+    return df
