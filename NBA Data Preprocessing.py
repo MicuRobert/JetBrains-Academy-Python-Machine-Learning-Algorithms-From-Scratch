@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import requests
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 # Checking ../Data directory presence
 if not os.path.exists('../Data'):
@@ -71,6 +72,7 @@ def feature_data(df):
     return df
 
 def multicol_data(df):
+    # Drop multicollinear features from the DataFrame that you got from the feature_data;
     X = df.drop(columns='salary')
     y = df.salary
     m = X.corr(numeric_only=True)
@@ -89,3 +91,21 @@ def multicol_data(df):
         else:
             df = df.drop(columns=col1)
     return df
+
+def transform_data(df):
+    # Transform numerical features in the DataFrame it got from multicol_data using StandardScaler;
+    num_feat_df = df.select_dtypes('number').drop('salary', axis=1)
+    scaler = StandardScaler()
+    scaler.fit(num_feat_df)
+    num_scaler_data = pd.DataFrame(scaler.transform(num_feat_df), columns=num_feat_df.columns)
+
+    # Transform nominal categorical variables in the DataFrame using OneHotEncoder;
+    cat_feat_df = df.select_dtypes('object')
+    onehot = OneHotEncoder()
+    onehot.fit(cat_feat_df)
+    cols = [el for arr in onehot.categories_ for el in arr]
+    cat_onehot_data = pd.DataFrame.sparse.from_spmatrix(onehot.transform(cat_feat_df), columns=cols)
+
+    # Concatenate the transformed numerical and categorical features in the following order: numerical features, then nominal categorical features;
+    df_res = pd.concat([num_scaler_data, cat_onehot_data], axis=1)
+    return df_res, df['salary']
