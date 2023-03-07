@@ -4,8 +4,17 @@ import os
 import requests
 from matplotlib import pyplot as plt
 
-# scroll to the bottom to start coding your solution
 
+def scale(X):
+    X = X / np.max(X)
+    return X
+
+def xavier(n_in, n_out):
+    limit = np.sqrt(6 / (n_in + n_out))
+    return np.array(np.random.uniform(-limit, limit, (n_in, n_out)))
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
 def one_hot(data: np.ndarray) -> np.ndarray:
     y_train = np.zeros((data.size, data.max() + 1))
@@ -13,6 +22,14 @@ def one_hot(data: np.ndarray) -> np.ndarray:
     y_train[rows, data] = 1
     return y_train
 
+class OneLayerNeural:
+    def __init__(self, n_features, n_classes):
+        self.weights = xavier(n_features, n_classes)
+        self.biases = xavier(1, n_classes)
+
+    def forward(self, X):
+        self.output = sigmoid(np.dot(X, self.weights) + self.biases)
+        return self.output
 
 def plot(loss_history: list, accuracy_history: list, filename='plot'):
 
@@ -72,22 +89,12 @@ if __name__ == '__main__':
     y_train = one_hot(raw_train['label'].values)
     y_test = one_hot(raw_test['label'].values)
 
-    # write your code here
-    def scale(X_train, X_test):
-        X_train = X_train/np.max(X_train)
-        X_test = X_test/np.max(X_test)
-        return [X_train, X_test]
+    X_train = scale(X_train)
+    X_test = scale(X_test)
 
-    def xavier(n_in, n_out):
-        limit = np.sqrt(6 / (n_in + n_out))
-        return np.array(np.random.uniform(-limit, limit, (n_in, n_out)))
+    model = OneLayerNeural(n_features=np.shape(X_train)[1], n_classes=10)
+
+    res = model.forward(X_train[:2])
+    print(res.flatten().tolist())
 
 
-    def sigmoid(x):
-        return 1 / (1 + np.exp(-x))
-
-    X_train, X_test = scale(X_train, X_test)
-    print([X_train[2,778], X_test[0,774]])
-    print(xavier(2,3).flatten().tolist())
-    sigmoid_results = [sigmoid(x) for x in [-1,0,1,2]]
-    print(sigmoid_results)
