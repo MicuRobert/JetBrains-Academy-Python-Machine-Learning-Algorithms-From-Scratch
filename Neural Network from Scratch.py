@@ -16,6 +16,15 @@ def xavier(n_in, n_out):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+def mse( y_pred, y_true):
+    return np.mean(np.square(y_pred - y_true))
+
+def mse_derivative(y_pred, y_true):
+    return 2 * (y_pred - y_true)
+
+def sigmoid_derivative(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
 def one_hot(data: np.ndarray) -> np.ndarray:
     y_train = np.zeros((data.size, data.max() + 1))
     rows = np.arange(data.size)
@@ -28,8 +37,16 @@ class OneLayerNeural:
         self.biases = xavier(1, n_classes)
 
     def forward(self, X):
-        self.output = sigmoid(np.dot(X, self.weights) + self.biases)
-        return self.output
+        return sigmoid(np.dot(X, self.weights) + self.biases)
+
+    def backprop(self, X, y, alpha):
+        error = (mse_derivative(self.forward(X), y) * sigmoid_derivative(np.dot(X, self.weights) + self.biases))
+
+        delta_W = (np.dot(X.T, error)) / X.shape[0]
+        delta_b = np.mean(error, axis=0)
+
+        self.weights -= alpha * delta_W
+        self.biases -= alpha * delta_b
 
 def plot(loss_history: list, accuracy_history: list, filename='plot'):
 
@@ -93,8 +110,14 @@ if __name__ == '__main__':
     X_test = scale(X_test)
 
     model = OneLayerNeural(n_features=np.shape(X_train)[1], n_classes=10)
+    model.backprop(X_train[:2], y_train[:2], 0.1)
+    y_pred = model.forward(X_train[:2])
 
-    res = model.forward(X_train[:2])
-    print(res.flatten().tolist())
+    n = np.array([-1, 0, 1, 2])
+    m = np.array([4, 3, 2, 1])
+    r_mse = mse(n, m).flatten().tolist()
+    r_mse_der = mse_derivative(n, m).flatten().tolist()
+    r_sig_der = sigmoid_derivative(n).flatten().tolist()
+    r_mse_backprop = mse(y_pred, y_train[:2]).flatten().tolist()
 
-
+    print(r_mse, r_mse_der, r_sig_der, r_mse_backprop)
