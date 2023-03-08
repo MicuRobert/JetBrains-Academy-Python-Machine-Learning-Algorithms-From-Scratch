@@ -31,6 +31,16 @@ def one_hot(data: np.ndarray) -> np.ndarray:
     y_train[rows, data] = 1
     return y_train
 
+def train(model, X, y, alpha, batch_size=100):
+    n = X.shape[0]
+    for i in range(0, n, batch_size):
+        model.backprop(X[i:i + batch_size], y[i:i + batch_size], alpha)
+
+def accuracy(model, X, y):
+    y_pred = np.argmax(model.forward(X), axis=1)
+    y_true = np.argmax(y, axis=1)
+    return np.mean(y_pred == y_true)
+
 class OneLayerNeural:
     def __init__(self, n_features, n_classes):
         self.weights = xavier(n_features, n_classes)
@@ -110,14 +120,12 @@ if __name__ == '__main__':
     X_test = scale(X_test)
 
     model = OneLayerNeural(n_features=np.shape(X_train)[1], n_classes=10)
-    model.backprop(X_train[:2], y_train[:2], 0.1)
-    y_pred = model.forward(X_train[:2])
 
-    n = np.array([-1, 0, 1, 2])
-    m = np.array([4, 3, 2, 1])
-    r_mse = mse(n, m).flatten().tolist()
-    r_mse_der = mse_derivative(n, m).flatten().tolist()
-    r_sig_der = sigmoid_derivative(n).flatten().tolist()
-    r_mse_backprop = mse(y_pred, y_train[:2]).flatten().tolist()
+    r_acc = accuracy(model, X_test, y_test).flatten().tolist()
 
-    print(r_mse, r_mse_der, r_sig_der, r_mse_backprop)
+    r_trained = []
+    for _ in range(20):
+        train(model, X_train, y_train, 0.5)
+        r_trained.append(accuracy(model, X_test, y_test))
+
+    print(r_acc, r_trained)
