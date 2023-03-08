@@ -58,6 +58,16 @@ class OneLayerNeural:
         self.weights -= alpha * delta_W
         self.biases -= alpha * delta_b
 
+class TwoLayerNeural:
+    def __init__(self, n_features, n_classes, hidden_size = 64):
+        self.weights = [xavier(n_features, hidden_size), xavier(hidden_size, n_classes)]
+        self.biases = [xavier(1, hidden_size), xavier(1, n_classes)]
+
+    def forward(self, X):
+        for i in range(2):
+            X = sigmoid(np.dot(X, self.weights[i]) + self.biases[i])
+        return X
+
 def plot(loss_history: list, accuracy_history: list, filename='plot'):
 
     # function to visualize learning process at stage 4
@@ -119,13 +129,6 @@ if __name__ == '__main__':
     X_train = scale(X_train)
     X_test = scale(X_test)
 
-    model = OneLayerNeural(n_features=np.shape(X_train)[1], n_classes=10)
-
-    r_acc = accuracy(model, X_test, y_test).flatten().tolist()
-
-    r_trained = []
-    for _ in range(20):
-        train(model, X_train, y_train, 0.5)
-        r_trained.append(accuracy(model, X_test, y_test))
-
-    print(r_acc, r_trained)
+    model = TwoLayerNeural(np.shape(X_train)[1], 10)
+    trained = model.forward(X_train[:2]).flatten().tolist()
+    print(trained)
