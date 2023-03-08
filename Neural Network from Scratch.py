@@ -68,6 +68,21 @@ class TwoLayerNeural:
             X = sigmoid(np.dot(X, self.weights[i]) + self.biases[i])
         return X
 
+    def backprop(self, X, y, alpha):
+        n = X.shape[0]
+        vec_ones = np.ones((1, n))
+        yp = self.forward(X)
+        db1 = 2 * alpha / n * ((yp - y) * yp * (1 - yp))
+        f1 = sigmoid(np.dot(X, self.weights[0]) + self.biases[0])
+        db0 = (np.dot(db1, self.weights[1].T)) * f1 * (1 - f1)
+
+        self.weights[0] -= np.dot(X.T, db0)
+        self.weights[1] -= np.dot(f1.T, db1)
+
+        self.biases[0] -= np.dot(vec_ones, db0)
+        self.biases[1] -= np.dot(vec_ones, db1)
+
+
 def plot(loss_history: list, accuracy_history: list, filename='plot'):
 
     # function to visualize learning process at stage 4
@@ -130,5 +145,6 @@ if __name__ == '__main__':
     X_test = scale(X_test)
 
     model = TwoLayerNeural(np.shape(X_train)[1], 10)
-    trained = model.forward(X_train[:2]).flatten().tolist()
-    print(trained)
+    model.backprop(X_train[:2], y_train[:2], alpha=0.1)
+    y_pred = model.forward(X_train[:2])
+    print(mse(y_pred, y_train[:2]).flatten().tolist())
