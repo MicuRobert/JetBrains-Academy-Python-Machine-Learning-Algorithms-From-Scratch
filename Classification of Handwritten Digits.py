@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.datasets import mnist
 from sklearn.preprocessing import Normalizer
+from sklearn.model_selection import GridSearchCV
 import numpy as np
 
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -20,24 +21,17 @@ normalizer = Normalizer()
 X_train_norm = normalizer.fit_transform(X_train)
 X_test_norm = normalizer.transform(X_test)
 
-models = {
-    'K-nearest Neighbors': KNeighborsClassifier(),
-    'Decision Tree': DecisionTreeClassifier(random_state=40),
-    'Logistic Regression': LogisticRegression(solver="liblinear", random_state=40),
-    'Random Forest': RandomForestClassifier(random_state=40)
-}
+par_knn = {"n_neighbors" : [3, 4], "weights" : ['uniform', 'distance'], 'algorithm' : ['auto', 'brute']}
+par_rfc = {"n_estimators" : [300, 500], "max_features" : ['auto', 'log2'], "class_weight" : ['balanced', 'balanced_subsample'], "random_state" : [40]}
 
+grid_knn = GridSearchCV(KNeighborsClassifier(), param_grid=par_knn, scoring='accuracy', n_jobs=-1)
+grid_rfc = GridSearchCV(RandomForestClassifier(), param_grid=par_rfc, scoring='accuracy', n_jobs=-1)
 
-def fit_predict_eval(model, features_train, features_test, target_train, target_test):
-    model.fit(features_train, target_train)
-    y_pred = model.predict(features_test)
-    score = accuracy_score(target_test, y_pred)
-    print(f'Model: {model.__class__.__name__}\nAccuracy: {score:.3f}\n')
-    return score
+grid_knn.fit(X_train_norm, y_train)
+grid_rfc.fit(X_train_norm, y_train)
 
+print(f'K-nearest neighbours algorithm\nbest estimator: {grid_knn.best_estimator_}')
+print(f'accuracy: {accuracy_score(y_test, grid_knn.best_estimator_.predict(X_test_norm))}')
 
-scores = {model.__class__.__name__ : fit_predict_eval(model, X_train_norm, X_test_norm, y_train, y_test) for model in models.values()}
-
-print("The answer to the 1st question: yes")
-
-print("The answer to the 2nd question:", ", ".join([model[0] + "-" + str(round(model[1], 3)) for model in sorted(scores.items(), key=lambda x: x[1], reverse=True)][:2]))
+print(f'Random forest algorithm\nbest estimator: {grid_rfc.best_estimator_}')
+print(f'accuracy: {accuracy_score(y_test, grid_rfc.best_estimator_.predict(X_test_norm))}')
